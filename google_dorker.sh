@@ -1,140 +1,230 @@
 #!/usr/bin/env bash
 #
 # Google Dork Launcher
-# A simple Bash utility that allows you to launch Google Dorks directly
-# from your Linux terminal. Designed for penetration testers and researchers.
-#
+# A clean, beginner-friendly, open-source tool to launch Google Dorks from the terminal.
 # Author: Your Name
-# Repository: https://github.com/yourusername/google-dork-launcher
 # License: MIT
 #
-# ---------------------------------------------------------------------------
-# MIT License
-#
-# Copyright (c) 2025 Your Name
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-# ---------------------------------------------------------------------------
 
+# -----------------------------
+# ASCII Banner
+# -----------------------------
+banner() {
+    echo -e "
+  ____                 _       ____             _    
+ / ___| ___   ___   __| | ___|  _ \  ___   ___| | __
+| |  _ / _ \ / _ \ / _  |/ _ \ | | |/ _ \ / __| |/ /
+| |_| | (_) | (_) | (_| |  __/ |_| | (_) | (__|   < 
+ \____|\___/ \___/ \__,_|\___|____/ \___/ \___|_|\_\\
+              Google Dork Launcher v1.3
+    "
+}
 
-# ---------------------------
+# -----------------------------
 # Colors
-# ---------------------------
+# -----------------------------
 GREEN="\e[32m"
 YELLOW="\e[33m"
 RED="\e[31m"
 CYAN="\e[36m"
 RESET="\e[0m"
 
-VERSION="1.0.0"
+VERSION="1.3"
 
-
-# ---------------------------
+# -----------------------------
 # URL Encoder
-# ---------------------------
+# -----------------------------
 urlencode() {
     local LANG=C
     local encoded=""
     local c
-
-    for ((i = 0; i < ${#1}; i++)); do
+    for ((i=0; i<${#1}; i++)); do
         c=${1:$i:1}
         case $c in
             [a-zA-Z0-9.~_-]) encoded+="$c" ;;
             *) encoded+=$(printf '%%%02X' "'$c") ;;
         esac
     done
-
     printf '%s' "$encoded"
 }
 
-
-# ---------------------------
-# Help menu
-# ---------------------------
+# -----------------------------
+# HELP PAGE
+# -----------------------------
 show_help() {
-    echo -e "${CYAN}Google Dork Launcher v$VERSION${RESET}"
+    banner
+    echo -e "${CYAN}Usage:${RESET}"
+    echo "  google-dork-launcher.sh [OPTIONS]"
     echo ""
-    echo "Usage: $0 [OPTIONS]"
+    echo -e "${CYAN}Options:${RESET}"
+    echo -e "  ${YELLOW}-q, --query \"<dork>\"${RESET}   Launch a Google Dork directly"
+    echo -e "  ${YELLOW}--ghdb${RESET}                  Open Google Hacking Database"
+    echo -e "  ${YELLOW}-h, --help${RESET}             Show this help page"
+    echo -e "  ${YELLOW}-v, --version${RESET}          Show version information"
     echo ""
-    echo "Options:"
-    echo "  -q, --query \"QUERY\"   Launch a Google Dork directly"
-    echo "  -h, --help             Show this help message"
-    echo "  -v, --version          Show version information"
-    echo ""
-    echo "Examples:"
-    echo "  $0 --query \"site:edu filetype:pdf password\""
+    echo -e "${CYAN}Examples:${RESET}"
+    echo "  ./google-dork-launcher.sh --query \"site:edu filetype:pdf\""
+    echo "  ./google-dork-launcher.sh --ghdb"
     echo ""
 }
 
-
-# ---------------------------
-# Version info
-# ---------------------------
+# -----------------------------
+# Version
+# -----------------------------
 show_version() {
     echo "Google Dork Launcher v$VERSION"
 }
 
+# -----------------------------
+# GHDB Shortcut
+# -----------------------------
+open_ghdb() {
+    echo -e "${GREEN}[OK] Opening Google Hacking Database...${RESET}"
+    xdg-open "https://www.exploit-db.com/google-hacking-database" >/dev/null 2>&1 &
+}
 
-# ---------------------------
-# Main Execution
-# ---------------------------
+# -----------------------------
+# PRESET DORK CATEGORIES
+# -----------------------------
+show_categories() {
+    echo -e "${CYAN}Choose a category:${RESET}"
+    echo ""
+    echo "  1) File Types"
+    echo "  2) Login Pages"
+    echo "  3) Index Pages"
+    echo "  4) Public Documents"
+    echo "  5) Back to Menu"
+    echo ""
+}
 
-# Check if xdg-open exists
-if ! command -v xdg-open &> /dev/null; then
-    echo -e "${RED}[ERROR] xdg-open is not installed. Install it to continue.${RESET}"
-    exit 1
-fi
+choose_dork() {
+    read -p "Select: " opt
+    case $opt in
+        1)
+            echo -e "${GREEN}File Type Dorks:${RESET}"
+            echo "1) filetype:pdf \"user guide\""
+            echo "2) filetype:txt \"configuration\""
+            echo "3) filetype:doc \"manual\""
+            read -p "Choose: " f
+            case $f in
+                1) DORK_QUERY='filetype:pdf "user guide"' ;;
+                2) DORK_QUERY='filetype:txt "configuration"' ;;
+                3) DORK_QUERY='filetype:doc "manual"' ;;
+            esac ;;
+        2)
+            echo -e "${GREEN}Login Page Dorks:${RESET}"
+            echo "1) intitle:\"login\" \"username\""
+            echo "2) inurl:auth intitle:login"
+            echo "3) inurl:login.php"
+            read -p "Choose: " f
+            case $f in
+                1) DORK_QUERY='intitle:"login" "username"' ;;
+                2) DORK_QUERY='inurl:auth intitle:login' ;;
+                3) DORK_QUERY='inurl:login.php' ;;
+            esac ;;
+        3)
+            echo -e "${GREEN}Index Pages:${RESET}"
+            echo "1) intitle:\"index of\""
+            echo "2) intitle:\"index of\" backup"
+            echo "3) intitle:\"index of\" /files"
+            read -p "Choose: " f
+            case $f in
+                1) DORK_QUERY='intitle:"index of"' ;;
+                2) DORK_QUERY='intitle:"index of" backup' ;;
+                3) DORK_QUERY='intitle:"index of" /files' ;;
+            esac ;;
+        4)
+            echo -e "${GREEN}Public Documents:${RESET}"
+            echo "1) site:gov filetype:pdf"
+            echo "2) site:edu filetype:pdf \"report\""
+            echo "3) site:org \"annual report\" filetype:pdf"
+            read -p "Choose: " f
+            case $f in
+                1) DORK_QUERY='site:gov filetype:pdf' ;;
+                2) DORK_QUERY='site:edu filetype:pdf "report"' ;;
+                3) DORK_QUERY='site:org "annual report" filetype:pdf' ;;
+            esac ;;
+        5)
+            return ;;
+        *)
+            echo -e "${RED}Invalid option.${RESET}" ;;
+    esac
 
+    launch_dork
+}
 
-# Parse flags
+# -----------------------------
+# QUERY LAUNCH
+# -----------------------------
+launch_dork() {
+    if [[ -z "$DORK_QUERY" ]]; then
+        echo -e "${RED}No query found.${RESET}"
+        return
+    fi
+
+    ENCODED_QUERY=$(urlencode "$DORK_QUERY")
+    GOOGLE_URL="https://www.google.com/search?q=$ENCODED_QUERY"
+
+    echo -e "${GREEN}[OK] Opening:${RESET} $GOOGLE_URL"
+    xdg-open "$GOOGLE_URL" >/dev/null 2>&1 &
+}
+
+# -----------------------------
+# MENU MODE
+# -----------------------------
+menu() {
+    banner
+    echo -e "${CYAN}1) Enter Custom Query${RESET}"
+    echo -e "${CYAN}2) Use Ready-Made Dorks${RESET}"
+    echo -e "${CYAN}3) Open Google Hacking Database (GHDB)${RESET}"
+    echo -e "${CYAN}4) Exit${RESET}"
+}
+
+# -----------------------------
+# FLAG PARSING
+# -----------------------------
 if [[ $# -gt 0 ]]; then
     case "$1" in
-        -h|--help) show_help; exit 0 ;;
-        -v|--version) show_version; exit 0 ;;
+        -h|--help)
+            show_help
+            exit 0 ;;
+        -v|--version)
+            show_version
+            exit 0 ;;
         -q|--query)
             shift
             DORK_QUERY="$*"
-            ;;
+            launch_dork
+            exit 0 ;;
+        --ghdb)
+            open_ghdb
+            exit 0 ;;
         *)
-            echo -e "${RED}[ERROR] Unknown option: $1${RESET}"
-            exit 1
-            ;;
+            echo -e "${RED}Unknown option:${RESET} $1"
+            echo "Use --help for usage."
+            exit 1 ;;
     esac
-else
-    # Ask user for input interactively
-    echo -e "${YELLOW}Enter your Google Dork query:${RESET}"
-    read -r DORK_QUERY
 fi
 
-
-# Must not be empty
-if [[ -z "$DORK_QUERY" ]]; then
-    echo -e "${RED}[ERROR] Query cannot be empty.${RESET}"
-    exit 1
-fi
-
-# Encode and open
-ENCODED_QUERY=$(urlencode "$DORK_QUERY")
-GOOGLE_URL="https://www.google.com/search?q=$ENCODED_QUERY"
-
-echo -e "${GREEN}[OK] Opening:${RESET} $GOOGLE_URL"
-xdg-open "$GOOGLE_URL" >/dev/null 2>&1 &
-
-exit 0
+# -----------------------------
+# MAIN LOOP
+# -----------------------------
+while true; do
+    menu
+    read -p "Select: " choice
+    case $choice in
+        1)
+            echo -e "${YELLOW}Enter your Google Dork query:${RESET}"
+            read -r DORK_QUERY
+            launch_dork ;;
+        2)
+            show_categories
+            choose_dork ;;
+        3)
+            open_ghdb ;;
+        4)
+            exit 0 ;;
+        *)
+            echo -e "${RED}Invalid option.${RESET}" ;;
+    esac
+done
