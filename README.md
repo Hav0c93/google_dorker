@@ -29,4 +29,8 @@ It automatically URL-encodes your query and opens the Google results in your def
 ```bash
 git clone https://github.com/yourusername/google-dork-launcher
 cd google-dork-launcher
-chmod +x google-dork-launcher.sh
+chmod +x google-dorker.sh
+
+### **RUN**
+```bash
+./google_dorker.sh
