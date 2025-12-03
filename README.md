@@ -31,6 +31,7 @@ git clone https://github.com/yourusername/google-dork-launcher
 cd google-dork-launcher
 chmod +x google-dorker.sh
 
-### **RUN**
+## RUN
+### **HOW TO RUN**
 ```bash
 ./google_dorker.sh
